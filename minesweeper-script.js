@@ -1,8 +1,7 @@
 (function () {
     const boardElement = document.getElementById('board');
     const restartButton = document.getElementById('restart');
-    const winningMassageElement = document.getElementById('winningMassage');
-    const winingMassageText = document.getElementById('winningMassageText');
+    const winningMassageText = document.getElementById('winningMessageText');
 
     const boardRows = 9;
     const boardColumns = 9;
@@ -16,6 +15,7 @@
                 const cell = document.createElement('div');
                 cell.setAttribute("class", "cell");
                 cell.setAttribute("id", `${i}${j}`);
+                cell.innerHTML = ``;
                 cell.addEventListener('click', onCellClicked);
                 cell.addEventListener('contextmenu', onCellRightClicked);
                 boardElement.appendChild(cell);
@@ -42,29 +42,62 @@
 
     function onCellClicked(e) {
         e.preventDefault();
-        e.currentTarget.classList.add("revealed");
         if (boardCellsArray[e.currentTarget.id[0]][e.currentTarget.id[1]] === '!!!') {
             e.currentTarget.classList.add("mine");
-            //document.getElementById('winningMassage').style.display = "block";
-            //winingMassageText.innerHTML = "You lost the game! Clicked on a MINE!"
+            document.getElementById('winningMessage').style.visibility = "visible";
+            winningMassageText.innerText = "You lost the game! Clicked on a MINE!";
         } else {
-            revealedCells(boardCellsArray, e.currentTarget.id);
+            revealedCellsToRight(boardCellsArray, Number(e.currentTarget.id[0]), Number(e.currentTarget.id[1]));
+            revealedCellsToLeft(boardCellsArray, Number(e.currentTarget.id[0]), Number(e.currentTarget.id[1]));
         }
     }
 
-    function revealedCells (board, cellId) {
-        let row =cellId[0];
-        let column = cellId[1];
-        if (board[row][column] !== '!!!') {
-            column++;
-            return revealedCells(board, cellId);
-        } else {
-            return
+    function revealedCellsToRight (board, rowIndex, columnIndex) {
+        if ((rowIndex < 0 || rowIndex >= board.length) ||
+            (columnIndex < 0 || columnIndex >= board.length)
+        ) {
+            return;
+        }
+
+        if(board[rowIndex][columnIndex] === '!!!') {
+            return;
+        }
+
+        if(rowIndex < board.length || columnIndex < board.length) {
+            document.getElementById(`${rowIndex}${columnIndex}`).classList.add('revealed');
+            revealedCellsToRight(board, rowIndex + 1, columnIndex);
+            revealedCellsToRight(board, rowIndex, columnIndex + 1);
+        }
+    }
+
+    function revealedCellsToLeft (board, rowIndex, columnIndex) {
+        if ((rowIndex < 0 || rowIndex >= board.length) ||
+            (columnIndex < 0 || columnIndex >= board.length)
+        ) {
+            return;
+        }
+
+        if(board[rowIndex][columnIndex] === '!!!') {
+            return;
+        }
+
+        if(rowIndex > 0 || columnIndex > 0) {
+            document.getElementById(`${rowIndex}${columnIndex}`).classList.add('revealed');
+            revealedCellsToLeft(board, rowIndex - 1, columnIndex);
+            revealedCellsToLeft(board, rowIndex, columnIndex - 1);
         }
     }
 
     function onCellRightClicked(e) {
-            console.log("right-clicked");
+        e.preventDefault();
+        if (e.currentTarget.classList.contains('revealed')) {
+            return;
+        }
+        if(e.currentTarget.innerHTML === '') {
+            e.currentTarget.innerHTML = 'X';
+        } else if (e.currentTarget.innerHTML === 'X') {
+            e.currentTarget.innerHTML = '';
+        }
     }
 
     //restartButton.addEventListener('click', restartGame);
